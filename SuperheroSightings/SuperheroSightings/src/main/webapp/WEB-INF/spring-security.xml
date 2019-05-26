@@ -1,0 +1,117 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+ http://www.springframework.org/schema/security
+ http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+    <!-- interpret the expressions we use to specify the behavior of the Spring Security tag-->
+    <!--without it spring security doesnt work-->
+    <beans:bean id="webexpressionHandler"
+                class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler"/> 
+    
+<!--                encrypt our passwords from database-->
+    <beans:bean id="encoder"
+                class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+    
+    <!--exclude the login URL from security. We also want to exclude our resource folders 
+    (such as /css/js/fonts) from sec these resources are used in both secured & unsecured page                -->            
+    <http pattern="/login" security="none" />
+    <http pattern="/error" security="none" />
+    <http pattern="/css/**" security="none" />
+    <http pattern="/js/**" security="none" />
+    <http pattern="/img/**" security="none" />
+    
+    
+    <!--login processing url is the end point for username & password-->
+    <http auto-config="true" use-expressions="false">
+        <form-login login-processing-url="/j_spring_security_check"
+                    login-page="/login"
+                    authentication-failure-url="/login?login_error=1"/>
+        <!--   login error where to redirect the user if the fail to put in proper username & password-->
+       
+        <!--index is configured so that all users (even those not logged in) have access.-->
+        <!--authenticated anonymously allows us to use other spring secure for other roles-->
+        <intercept-url pattern="/" 
+                       access="IS_AUTHENTICATED_ANONYMOUSLY" />
+        <intercept-url pattern="/index.jsp" 
+                       access="IS_AUTHENTICATED_ANONYMOUSLY" />
+       
+        
+        <!--    User get all access rights that comes with the role
+        Users can have more than one role, user can be admin etc--> 
+        <intercept-url pattern="/addLocation" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/deleteLocation" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/displayEditLocationForm" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/editLocation" 
+                       access="ROLE_ADMIN" />     
+        
+        <intercept-url pattern="/addSuperpower" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/deleteSuperpower" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/displayEditSuperpowerForm" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/editSuperpower" 
+                       access="ROLE_ADMIN" /> 
+        
+        <intercept-url pattern="/addPerson" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/deletePerson" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/displayEditPersonForm" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/editPerson" 
+                       access="ROLE_ADMIN" />  
+        
+        <intercept-url pattern="/addOrganization" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/deleteOrganization" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/displayEditPersonForm" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/editOrganization" 
+                       access="ROLE_ADMIN" />  
+        
+        <intercept-url pattern="/addSighting" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/deleteSighting" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/displayEditSightingForm" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/editSighting" 
+                       access="ROLE_ADMIN" />
+        
+          
+        
+        <intercept-url pattern="/userHome/**" 
+                       access="ROLE_USER,ROLE_ADMIN" />
+        <intercept-url pattern="/addUser" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/deleteUser" 
+                       access="ROLE_ADMIN" />
+        <intercept-url pattern="/displayEditUserForm" 
+                               access="ROLE_ADMIN" />
+        <intercept-url pattern="/editUser" 
+                       access="ROLE_ADMIN" />
+        <!--        anything else that doesnt match above rules, requires log in of at least user role-->
+        <intercept-url pattern="/displayUserDetails" 
+                       access="ROLE_USER, ROLE_ADMIN" />
+    </http>
+    <authentication-manager>
+        <authentication-provider>
+            <!--            database has to match up with these queries -->
+            <!--            Need to populate the tables with both users roles: user & admin-->
+            <password-encoder ref="encoder"/>
+            <jdbc-user-service id="userService"
+                               data-source-ref="dataSource"
+                               users-by-username-query=
+ "select Username, UserPassword, isEnabled from Users where Username=?"
+                               authorities-by-username-query=
+ "select Username, Authority from Authorities where Username=?" />
+        </authentication-provider>
+    </authentication-manager>
+</beans:beans>
